@@ -114,6 +114,19 @@ nostrud  exercitation   ullamco  laboris
 nisi ut aliquip ex ea commodo consequat.
 ```
 
+Overwrite files in-place with `-O`:
+```
+$ cat lorem_ipsum.txt
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+$ ifmt.py -j -O -w100 lorem_ipsum.txt
+$ cat lorem_ipsum.txt
+Lorem   ipsum   dolor    sit   amet,   consectetur
+adipisicing elit, sed do eiusmod tempor incididunt
+ut labore et dolore magna aliqua. Ut enim ad minim
+veniam, quis nostrud exercitation ullamco  laboris
+nisi ut aliquip ex ea commodo consequat.
+```
+
 For a complete list of options:
 
     ifmt.py -h

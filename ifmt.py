@@ -198,65 +198,60 @@ def process_line(line, context):
 # If the program is being executed (as opposed to being imported as a module), process command-line arguments.
 if __name__ == '__main__':
 
-    #try:
+    # Define arguments this program accepts.
+    parser = argparse.ArgumentParser(__file__,description=__doc__)
+    parser.add_argument('-w','--width',dest='width',metavar='width',type=int,default=80,help='Maximum number of columns (default: %(default)s)'); # Max columns
+    parser.add_argument('-t','--tabstop',dest='tabstop',metavar='tabstop',type=int,default=8,help='Number of columns between tabstops (default: %(default)s)'); # Tabstop
+    parser.add_argument('inputs',metavar='input',type=argparse.FileType('r'),nargs='+',help='Input file. If "-", STDIN is read.') # Input file
+    parser.add_argument('-o','--output',dest='output',metavar='output',type=argparse.FileType('w'),help='Output file. If unspecified, output is written to STDOUT.') # Output file
+    parser.add_argument('-O','--overwrite',dest='overwrite',metavar='overwrite',action='store_const',const=True,help='If specified, input files are overwritten in place. Cannot be specified in tandem with -o (--output).') # Overwrite
+    parser.add_argument('-f','--flow',dest='flow',metavar='flow',action='store_const',const=True,help='If specified, consecutive non-empty lines are presumed to be part of the same block of text. Newlines are not preserved.') # Line flow.
+    parser.add_argument('-j','--justify',dest='justify',metavar='justify',action='store_const',const=True,help='If specified, output is right- and left-justified. Implies \'-f\'. Neither tabs nor newlines are preserved.') # Justification.
+    #parser.add_argument('-c','--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
 
-        # Define arguments this program accepts.
-        parser = argparse.ArgumentParser(__file__,description=__doc__)
-        parser.add_argument('-w','--width',dest='width',metavar='width',type=int,default=80,help='Maximum number of columns (default: %(default)s)'); # Max columns
-        parser.add_argument('-t','--tabstop',dest='tabstop',metavar='tabstop',type=int,default=8,help='Number of columns between tabstops (default: %(default)s)'); # Tabstop
-        parser.add_argument('inputs',metavar='input',type=argparse.FileType('r'),nargs='+',help='Input file. If "-", STDIN is read.') # Input file
-        parser.add_argument('-o','--output',dest='output',metavar='output',type=argparse.FileType('w'),help='Output file. If unspecified, output is written to STDOUT.') # Output file
-        parser.add_argument('-O','--overwrite',dest='overwrite',metavar='overwrite',action='store_const',const=True,help='If specified, input files are overwritten in place. Cannot be specified in tandem with -o (--output).') # Overwrite
-        parser.add_argument('-f','--flow',dest='flow',metavar='flow',action='store_const',const=True,help='If specified, consecutive non-empty lines are presumed to be part of the same block of text. Newlines are not preserved.') # Line flow.
-        parser.add_argument('-j','--justify',dest='justify',metavar='justify',action='store_const',const=True,help='If specified, output is right- and left-justified. Implies \'-f\'. Neither tabs nor newlines are preserved.') # Justification.
-        #parser.add_argument('-c','--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
+    # Parse arguments
+    args = parser.parse_args()
 
-        # Parse arguments
-        args = parser.parse_args()
+    # Check for argument conflicts.
+    if args.justify and args.flow:
+        sys.stderr.write('Warning: Justification (\'-j\' or \'--justify\') implies flow (\'-f\' or \'--flow\'). Both are specified.\n')
+    if args.output and args.overwrite:
+        raise Exception('Cannot specify an output file (\'-o\' or \'--output\') and overwrite (\'-O\') in tandem.')
 
-        # Check for argument conflicts.
-        if args.justify and args.flow:
-            sys.stderr.write('Warning: Justification (\'-j\' or \'--justify\') implies flow (\'-f\' or \'--flow\'). Both are specified.\n')
-        if args.output and args.overwrite:
-            raise Exception('Cannot specify an output file (\'-o\' or \'--output\') and overwrite (\'-O\') in tandem.')
+    # Justification implies flow.
+    if args.justify: args.flow = True
 
-        # Justification implies flow.
-        if args.justify: args.flow = True
+    # Process each input file.
+    for input in args.inputs:
 
-        # Process each input file.
-        for input in args.inputs:
+        # Determine the output file.
+        if args.overwrite:
+            import tempfile
+            output = tempfile.TemporaryFile()
+        else:
+            if args.output: output = args.output
+            else: output = sys.stdout
 
-            # Determine the output file.
-            if args.overwrite:
-                import tempfile
-                output = tempfile.TemporaryFile()
-            else:
-                if args.output: output = args.output
-                else: output = sys.stdout
+        # The starting context.
+        context = {'flow':args.flow,'justify':args.justify,'width':args.width,'tabstop':args.tabstop,'prefix':''}
 
-            # The starting context.
-            context = {'flow':args.flow,'justify':args.justify,'width':args.width,'tabstop':args.tabstop,'prefix':''}
-
-            # Process each line of the input file.
+        # Process each line of the input file.
+        line = input.readline()
+        while line:
+            context = process_line(line, context)
             line = input.readline()
-            while line:
-                context = process_line(line, context)
-                line = input.readline()
 
-            # Finally, we must resolve the context of the final line.
-            resolve_context(context)
+        # Finally, we must resolve the context of the final line.
+        resolve_context(context)
 
-            # Overwrite the input file, if specified.
-            if args.overwrite:
-                # Reopen the input file in write mode.
-                input.close()
-                input = open(input.name,'w')
-                # Go to the beginning of the temporary file we created, and write each line to the original input file.
-                output.seek(0)
-                input.writelines(output.readlines())
-                # Close the temp file and input file.
-                input.close()
-                output.close()
-
-    #except Exception as error:
-        #raise error
+        # Overwrite the input file, if specified.
+        if args.overwrite:
+            # Reopen the input file in write mode.
+            input.close()
+            input = open(input.name,'w')
+            # Go to the beginning of the temporary file we created, and write each line to the original input file.
+            output.seek(0)
+            input.writelines(output.readlines())
+            # Close the temp file and input file.
+            input.close()
+            output.close()
