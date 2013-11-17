@@ -193,13 +193,18 @@ def process_line(line, context):
     if prefix != next_prefix(context['prefix']) or all_whitespace:
         resolve_context(context)
         context['prefix'] = prefix
+    # If source code processing is specified, we want to flow in comments (which have non-whitespace prefixes)
+    # but not in the rest of the code (which has whitespace indents).
+    if context['code']:
+        if is_whitespace(prefix): context['flow'] = False
+        else: context['flow'] = True
     return process_words(words, context)
 
 # If the program is being executed (as opposed to being imported as a module), process command-line arguments.
 if __name__ == '__main__':
 
     # Define arguments this program accepts.
-    parser = argparse.ArgumentParser(__file__,description=__doc__)
+    parser = argparse.ArgumentParser('ifmt.py',description=__doc__)
     parser.add_argument('-w','--width',dest='width',metavar='width',type=int,default=80,help='Maximum number of columns (default: %(default)s)'); # Max columns
     parser.add_argument('-t','--tabstop',dest='tabstop',metavar='tabstop',type=int,default=8,help='Number of columns between tabstops (default: %(default)s)'); # Tabstop
     parser.add_argument('inputs',metavar='input',type=argparse.FileType('r'),nargs='+',help='Input file. If "-", STDIN is read.') # Input file
@@ -207,7 +212,7 @@ if __name__ == '__main__':
     parser.add_argument('-O','--overwrite',dest='overwrite',metavar='overwrite',action='store_const',const=True,help='If specified, input files are overwritten in place. Cannot be specified in tandem with -o (--output).') # Overwrite
     parser.add_argument('-f','--flow',dest='flow',metavar='flow',action='store_const',const=True,help='If specified, consecutive non-empty lines are presumed to be part of the same block of text. Newlines are not preserved.') # Line flow.
     parser.add_argument('-j','--justify',dest='justify',metavar='justify',action='store_const',const=True,help='If specified, output is right- and left-justified. Implies \'-f\'. Neither tabs nor newlines are preserved.') # Justification.
-    #parser.add_argument('--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
+    parser.add_argument('--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
 
     # Parse arguments
     args = parser.parse_args()
@@ -217,6 +222,8 @@ if __name__ == '__main__':
         sys.stderr.write('Warning: Justification (\'-j\' or \'--justify\') implies flow (\'-f\' or \'--flow\'). Both are specified.\n')
     if args.output and args.overwrite:
         raise Exception('Cannot specify an output file (\'-o\' or \'--output\') and overwrite (\'-O\') in tandem.')
+    if args.code and (args.flow or args.justify):
+        raise Exception('\'--code\' implies \'--flow\' for certain parts of the file.')
 
     # Justification implies flow.
     if args.justify: args.flow = True
@@ -233,7 +240,7 @@ if __name__ == '__main__':
             else: output = sys.stdout
 
         # The starting context.
-        context = {'flow':args.flow,'justify':args.justify,'width':args.width,'tabstop':args.tabstop,'prefix':''}
+        context = {'flow':args.flow,'justify':args.justify,'width':args.width,'tabstop':args.tabstop,'prefix':'','code':args.code}
 
         # Process each line of the input file.
         line = input.readline()
