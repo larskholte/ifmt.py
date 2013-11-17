@@ -28,7 +28,7 @@ culpa qui officia deserunt mollit anim id est laborum.
 
 Or presume we have a source code file with long comments:
 ```
-// struct which contains information about a single argument.
+// struct which contains information about a single command-line argument.
 struct CAArg {
         // The type of this argument.
         enum CAArgType type;
@@ -60,6 +60,7 @@ struct CAArg {
 
 Or presume we have a file with lines of irregular length:
 ```
+$ cat lorem_ipsum.txt
 Lorem ipsum dolor sit amet,
 consectetur adipisicing elit,
 sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
@@ -71,8 +72,9 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
 Excepteur sint occaecat cupidatat non proident,
 sunt in culpa qui officia deserunt mollit anim id est laborum.
 ```
-We can cause lines to "flow" together into paragraphs with the `-f` option. The width of the paragraphs can be specified with the `-w` option, as usual:
+We can cause lines to "flow" together into paragraphs with the `-f` option.
 ```
+$ ifmt.py -f lorem_ipsum.txt
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
 nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -105,22 +107,11 @@ $ cat lorem_ipsum.txt
 Lorem  ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt  ut  labore et  dolore magna  aliqua. Ut  enim ad  minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 $ ifmt.py -j -w40 - < lorem_ipsum.txt
 Lorem  ipsum dolor sit amet, consectetur
-adipisicing  elit, sed do eiusmod tempor
-incididunt   ut  labore et  dolore magna
-aliqua.  Ut  enim ad  minim veniam, quis
-nostrud    exercitation  ullamco laboris
+adipisicing elit, sed do eiusmod  tempor
+incididunt ut  labore  et  dolore  magna
+aliqua. Ut  enim ad  minim veniam,  quis
+nostrud  exercitation   ullamco  laboris
 nisi ut aliquip ex ea commodo consequat.
-```
-(The algorithm that decides where to insert spaces needs work. It favors the left side.)
-
-Internal whitespace is preserved, because chances are, you want it to be:
-```
-$ cat form.txt
-First name:                       Last name:
-Employer:                         Favorite color:
-$ ifmt.py form.txt
-First name:                       Last name:
-Employer:                         Favorite color:
 ```
 
 For a complete list of options:

@@ -95,12 +95,12 @@ def print_words_as_line(words, context):
             cols = add_cols(printed_words[i],cols,context)
             i += 1
         deficit = context['width'] - cols
+        # Record the original number of words.
+        original_words = len(printed_words)
         # Insert spaces to make up the difference.
         i = 0
         while i < deficit:
-            #printed_words.insert(int((i+1)/float(deficit+1)*(len(printed_words)+i)),' ')
-            # TODO: This could be better.
-            printed_words.insert(1+int(i/float(deficit)*(len(printed_words)-2)),' ')
+            printed_words.insert(int((original_words-1)-(float(i)/deficit)*(original_words-2)),' ')
             i += 1
     # Write all the words that need to be printed.
     for word in printed_words:
