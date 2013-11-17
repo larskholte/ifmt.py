@@ -207,7 +207,7 @@ if __name__ == '__main__':
     parser.add_argument('-O','--overwrite',dest='overwrite',metavar='overwrite',action='store_const',const=True,help='If specified, input files are overwritten in place. Cannot be specified in tandem with -o (--output).') # Overwrite
     parser.add_argument('-f','--flow',dest='flow',metavar='flow',action='store_const',const=True,help='If specified, consecutive non-empty lines are presumed to be part of the same block of text. Newlines are not preserved.') # Line flow.
     parser.add_argument('-j','--justify',dest='justify',metavar='justify',action='store_const',const=True,help='If specified, output is right- and left-justified. Implies \'-f\'. Neither tabs nor newlines are preserved.') # Justification.
-    #parser.add_argument('-c','--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
+    #parser.add_argument('--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
 
     # Parse arguments
     args = parser.parse_args()
