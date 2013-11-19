@@ -24,6 +24,10 @@ def guess_prefix(line):
     if line[i:i+2] == '# ':
         return line[0:i+2]
     if line[i] == '#':
+        # Protect preprocessor directives.
+        if line[0:7] == '#ifndef': return ''
+        if line[0:6] == '#ifdef': return ''
+        if line[0:6] == '#endif': return ''
         return line[0:i+1]
     # Bullets with asterisks.
     if line[i] == '*':
@@ -223,7 +227,7 @@ if __name__ == '__main__':
     if args.output and args.overwrite:
         raise Exception('Cannot specify an output file (\'-o\' or \'--output\') and overwrite (\'-O\') in tandem.')
     if args.code and (args.flow or args.justify):
-        raise Exception('\'--code\' implies \'--flow\' for certain parts of the file.')
+        raise Exception('\'--code\' implies \'--flow\', but only for certain parts of the file.')
 
     # Justification implies flow.
     if args.justify: args.flow = True
