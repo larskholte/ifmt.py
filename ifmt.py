@@ -28,6 +28,7 @@ def guess_prefix(line):
         if line[0:7] == '#ifndef': return ''
         if line[0:6] == '#ifdef': return ''
         if line[0:6] == '#endif': return ''
+        if line[0:8] == '#include': return ''
         return line[0:i+1]
     # Bullets with asterisks.
     if line[i] == '*':
@@ -89,7 +90,7 @@ def print_words_as_line(words, context):
                 k += 1
         i += 1
     # If we want to justify the text, we may need to insert spaces.
-    cols = 0
+    cols = len(context['prefix'])
     if context.get('justify') and context.get('flow'):
         # Count the number of columns the text will take up.
         i = 0
@@ -142,6 +143,10 @@ def process_words(words, context):
     word_index = 0
     # If there are no words to print, we print the prefix and return.
     if len(words) == 0:
+        print_words_as_line(words, context)
+        return context
+    # A width of 0 indicates that this line has unlimited width.
+    if context['width'] == 0:
         print_words_as_line(words, context)
         return context
     # Reserve room for any prefix.
@@ -211,12 +216,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('ifmt.py',description=__doc__)
     parser.add_argument('-w','--width',dest='width',metavar='width',type=int,default=80,help='Maximum number of columns (default: %(default)s)'); # Max columns
     parser.add_argument('-t','--tabstop',dest='tabstop',metavar='tabstop',type=int,default=8,help='Number of columns between tabstops (default: %(default)s)'); # Tabstop
-    parser.add_argument('inputs',metavar='input',type=argparse.FileType('r'),nargs='+',help='Input file. If "-", STDIN is read.') # Input file
+    parser.add_argument('inputs',metavar='input',type=argparse.FileType('r'),nargs='*',default=[sys.stdin],help='Input file. If "-", STDIN is read.') # Input file
     parser.add_argument('-o','--output',dest='output',metavar='output',type=argparse.FileType('w'),help='Output file. If unspecified, output is written to STDOUT.') # Output file
     parser.add_argument('-O','--overwrite',dest='overwrite',metavar='overwrite',action='store_const',const=True,help='If specified, input files are overwritten in place. Cannot be specified in tandem with -o (--output).') # Overwrite
     parser.add_argument('-f','--flow',dest='flow',metavar='flow',action='store_const',const=True,help='If specified, consecutive non-empty lines are presumed to be part of the same block of text. Newlines are not preserved.') # Line flow.
     parser.add_argument('-j','--justify',dest='justify',metavar='justify',action='store_const',const=True,help='If specified, output is right- and left-justified. Implies \'-f\'. Neither tabs nor newlines are preserved.') # Justification.
-    parser.add_argument('--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
+    parser.add_argument('-c','--code',dest='code',metavar='code',action='store_const',const=True,help='If specified, input lines flow together except in lines with whitespace prefixes (indented code). This means that comment blocks flow together while code blocks are wrapped.') # Comment flow.
 
     # Parse arguments
     args = parser.parse_args()
