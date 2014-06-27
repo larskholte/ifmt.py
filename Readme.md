@@ -128,6 +128,77 @@ incididunt ut labore  et dolore magna  aliqua. Ut enim  ad minim  veniam, quis n
 ullamco  laboris nisi ut aliquip ex ea commodo consequat.
 ```
 
+Suppose you have source code where you want the comment lines to flow together into paragraphs, while the code lines remain unchanged.
+This can be accomplished with the --code flag:
+```
+$ cat hello_world.c
+// From: http://www.tldp.org/HOWTO/NCURSES-Programming-HOWTO/helloworld.html
+
+#include <ncurses.h>
+#include <signal.h>
+#include <stdlib.h>
+
+// Function which cleans up after
+// this program.
+// Registered to be called before the program exits.
+void end() {
+	endwin();
+}
+
+int main() {
+	// Register a function to be called when the program terminates. This function is called whether the program terminates normally or not.
+	atexit(end);
+
+	// Initialize the ncurses library and the terminal screen.
+	initscr();
+
+	// Print a message to the terminal.
+	// This is a test
+	// to see if comment flow
+	// works.
+	printw("Hello world!");
+	refresh();
+
+	// Wait for user input.
+	getch();
+
+	return 0;
+}
+```
+```
+$ ifmt.py --code hello_world.c
+// From: http://www.tldp.org/HOWTO/NCURSES-Programming-HOWTO/helloworld.html
+
+#include <ncurses.h>
+#include <signal.h>
+#include <stdlib.h>
+
+// Function which cleans up after this program. Registered to be called before
+// the program exits.
+void end() {
+	endwin();
+}
+
+int main() {
+	// Register a function to be called when the program terminates. This
+	// function is called whether the program terminates normally or not.
+	atexit(end);
+
+	// Initialize the ncurses library and the terminal screen.
+	initscr();
+
+	// Print a message to the terminal. This is a test to see if comment
+	// flow works.
+	printw("Hello world!");
+	refresh();
+
+	// Wait for user input.
+	getch();
+
+	return 0;
+}
+```
+
 For a complete list of options:
 
     ifmt.py -h
