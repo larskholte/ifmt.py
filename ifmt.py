@@ -15,11 +15,12 @@ def guess_prefix(line):
     while i < len(line):
         if line[i] in string.whitespace: i += 1
         else: break
+    # Doxygen /// comments.
+    if line[i:i+4] == '/// ': return line[0:i+4]
+    if line[i:i+3] == '///': return line[0:i+3]
     # C-style comments.
-    if line[i:i+3] == '// ':
-        return line[0:i+3]
-    if line[i:i+2] == '//':
-        return line[0:i+2]
+    if line[i:i+3] == '// ': return line[0:i+3]
+    if line[i:i+2] == '//': return line[0:i+2]
     # Python-style comments.
     if line[i:i+2] == '# ':
         return line[0:i+2]
