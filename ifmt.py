@@ -15,22 +15,22 @@ def guess_prefix(line):
     while i < len(line):
         if line[i] in string.whitespace: i += 1
         else: break
+    prefix = None
     # Doxygen /// comments.
-    if line[i:i+4] == '/// ': return line[0:i+4]
-    if line[i:i+3] == '///': return line[0:i+3]
+    if line[i:i+3] == '///': prefix = line[0:i+3]
     # C-style comments.
-    if line[i:i+3] == '// ': return line[0:i+3]
-    if line[i:i+2] == '//': return line[0:i+2]
+    elif line[i:i+2] == '//': prefix = line[0:i+2]
     # Python-style comments.
-    if line[i:i+2] == '# ':
-        return line[0:i+2]
-    if line[i] == '#':
+    elif line[i] == '#':
         # Protect preprocessor directives.
         if line[0:7] == '#ifndef': return ''
         if line[0:6] == '#ifdef': return ''
         if line[0:6] == '#endif': return ''
         if line[0:8] == '#include': return ''
-        return line[0:i+1]
+        prefix = line[0:i+1]
+    if prefix:
+        while len(prefix) < len(line) and line[len(prefix)] in string.whitespace: prefix += line[len(prefix)]
+        return prefix
     # Bullets with asterisks.
     if line[i] == '*':
         # Find the next non-whitespace character.
